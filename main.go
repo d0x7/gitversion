@@ -105,30 +105,31 @@ func main() {
 	builder.WriteString(strconv.Itoa(patch))
 	//if (patch == 0 && commitsAhead == 0) || (patch != 0 && commitsAhead == 0) {
 
-	builder.WriteString("-")
-	if commitsAhead == 0 && !dirty {
-		builder.WriteString(preRelease)
-	} else if preRelease == "" {
-		builder.WriteString("dev.")
-		builder.WriteString(strconv.Itoa(commitsAhead))
-	} else {
-		builder.WriteString(preRelease)
-		builder.WriteString(".")
-		builder.WriteString(strconv.Itoa(commitsAhead))
+	// Write prerelease if exists or otherwise dev and the amounts of commits we're ahead
+	if preRelease != "" || commitsAhead != 0 {
+		builder.WriteString("-")
+
+		if preRelease == "" {
+			builder.WriteString("dev.")
+			builder.WriteString(strconv.Itoa(commitsAhead))
+		} else if preRelease != "" && commitsAhead == 0 {
+			builder.WriteString(preRelease)
+		} else if preRelease != "" && commitsAhead != 0 {
+			builder.WriteString(preRelease)
+			builder.WriteString(".")
+			builder.WriteString(strconv.Itoa(commitsAhead))
+		}
 	}
 
 	if meta != "" || dirty {
-		if showDirty {
-			if meta == "" && dirty {
-				builder.WriteString("+dirty")
-			} else if meta != "" && dirty {
-				builder.WriteString("+")
-				builder.WriteString(meta)
-				builder.WriteString("+dirty")
-			}
-		} else if meta != "" {
-			builder.WriteString("+")
+		builder.WriteString("+")
+		if meta != "" {
 			builder.WriteString(meta)
+		}
+		if dirty && meta != "" {
+			builder.WriteString(".dirty")
+		} else if dirty && meta == "" {
+			builder.WriteString("dirty")
 		}
 	}
 
