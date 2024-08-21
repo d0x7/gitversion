@@ -2,22 +2,42 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
+	"jdk.sh/meta"
 	"log/slog"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
 
 var (
 	major, minor, patch, commitsAhead int
-	preRelease, meta                  string
+	preRelease, metaTag               string
 	prefix, dirty                     bool
+
+	// Flags
+	versionFlag, verboseFlag bool
 )
 
 func main() {
-	slog.SetLogLoggerLevel(slog.LevelError)
+	flag.BoolVar(&versionFlag, "version", false, "print the version and exit")
+	flag.BoolVar(&versionFlag, "v", false, "print the version and exit")
+	flag.BoolVar(&verboseFlag, "verbose", false, "enable verbose/debug logging")
+	flag.BoolVar(&verboseFlag, "debug", false, "enable verbose/debug logging")
+	flag.Parse()
+	if versionFlag {
+		fmt.Printf("%s %s (%s), built on %s\n", filepath.Base(os.Args[0]), meta.Version(), meta.ShortSHA(), meta.Date())
+		return
+	}
+	if verboseFlag {
+		slog.SetLogLoggerLevel(slog.LevelDebug)
+	} else {
+		slog.SetLogLoggerLevel(slog.LevelError)
+	}
+
 	var err error
 	tag, tagErr := execute("git", "describe", "--tags", "--abbrev=0")
 	rawDescribe, describeErr := execute("git", "describe", "--tags", "--long", "--dirty")
@@ -50,7 +70,7 @@ func main() {
 	if strings.Contains(version, "+") {
 		split := strings.Split(version, "+")
 		version = split[0]
-		meta = split[1]
+		metaTag = split[1]
 	}
 
 	if strings.Contains(version, "-") {
@@ -115,14 +135,14 @@ func main() {
 		}
 	}
 
-	if meta != "" || dirty {
+	if metaTag != "" || dirty {
 		builder.WriteString("+")
-		if meta != "" {
-			builder.WriteString(meta)
+		if metaTag != "" {
+			builder.WriteString(metaTag)
 		}
-		if dirty && meta != "" {
+		if dirty && metaTag != "" {
 			builder.WriteString(".dirty")
-		} else if dirty && meta == "" {
+		} else if dirty && metaTag == "" {
 			builder.WriteString("dirty")
 		}
 	}
@@ -130,7 +150,7 @@ func main() {
 	// Print version to stdout
 	version = builder.String()
 
-	slog.Debug(fmt.Sprintf("Set version to %s according to raw tag %s", version, rawDescribe), "major", major, "minor", minor, "patch", patch, "preRelease", preRelease, "commitsAhead", commitsAhead, "meta", meta, "prefix", prefix, "dirty", dirty)
+	slog.Debug(fmt.Sprintf("Set version to %s according to raw tag %s", version, rawDescribe), "major", major, "minor", minor, "patch", patch, "preRelease", preRelease, "commitsAhead", commitsAhead, "metaTag", metaTag, "prefix", prefix, "dirty", dirty)
 	fmt.Println(version)
 }
 
