@@ -1,0 +1,11 @@
+version: 3
+
+tasks:
+  build:
+    desc: Build the application
+    cmds:
+      - go build -o gitversion main.go
+  run:
+    desc: Run the application
+    cmds:
+      - go run main.go
