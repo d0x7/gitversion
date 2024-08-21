@@ -14,9 +14,6 @@ var (
 	major, minor, patch, commitsAhead int
 	preRelease, meta                  string
 	prefix, dirty                     bool
-
-	// Flags
-	showDirty = true
 )
 
 func main() {
@@ -54,9 +51,7 @@ func main() {
 		split := strings.Split(version, "+")
 		version = split[0]
 		meta = split[1]
-	} /*else { TODO: No clue was this was supposed to do
-		meta = hash
-	}*/
+	}
 
 	if strings.Contains(version, "-") {
 		split := strings.SplitN(version, "-", 2)
@@ -103,7 +98,6 @@ func main() {
 		patch++
 	}
 	builder.WriteString(strconv.Itoa(patch))
-	//if (patch == 0 && commitsAhead == 0) || (patch != 0 && commitsAhead == 0) {
 
 	// Write prerelease if exists or otherwise dev and the amounts of commits we're ahead
 	if preRelease != "" || commitsAhead != 0 {
@@ -133,11 +127,10 @@ func main() {
 		}
 	}
 
+	// Print version to stdout
 	version = builder.String()
 
 	slog.Debug(fmt.Sprintf("Set version to %s according to raw tag %s", version, rawDescribe), "major", major, "minor", minor, "patch", patch, "preRelease", preRelease, "commitsAhead", commitsAhead, "meta", meta, "prefix", prefix, "dirty", dirty)
-
-	// Print actual version to stdout
 	fmt.Println(version)
 }
 
