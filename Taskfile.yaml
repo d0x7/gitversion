@@ -5,6 +5,12 @@ tasks:
     desc: Build the application
     cmds:
       - go build -o gitversion main.go
+  install:
+    desc: Install the plugin
+    deps:
+      - build
+    cmds:
+      - cp gitversion ~/go/bin/gitversion
   run:
     desc: Run the application
     cmds:
